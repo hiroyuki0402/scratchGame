@@ -72,15 +72,28 @@ document.addEventListener('DOMContentLoaded', function() {
         /// 初期描画を更新
         updateCanvas(maskCtx);
 
-        /// マウス移動時の挙動を管理
-        function handleMouseMove(e) {
+        /// マウスおよびタッチ移動時の挙動を管理
+        function handleMove(e) {
             /// 描画フラグがfalseの場合、処理を中断
             if (!isDrawing) return;
 
-            /// キャンバス上のマウスの位置を計算
+            /// デフォルトの動作をキャンセル
+            e.preventDefault();
+
+            /// タッチイベントの場合、最初のタッチ点を使用
+            let clientX, clientY;
+            if (e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            /// キャンバス上の座標を計算
             const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-            const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+            const x = (clientX - rect.left) * (canvas.width / rect.width);
+            const y = (clientY - rect.top) * (canvas.height / rect.height);
 
             /// マスクに対してスクラッチ効果を適用
             maskCtx.globalCompositeOperation = 'destination-out';
@@ -138,22 +151,29 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        /// マウスボタンが押された時に描画を開始
-        canvas.addEventListener('mousedown', function() {
+        /// 描画を開始する関数
+        function startDrawing(e) {
             isDrawing = true;
-        });
+            /// デフォルトの動作をキャンセル（スクロール防止など）
+            e.preventDefault();
+        }
 
-        /// マウスボタンが離された時に描画を停止
-        canvas.addEventListener('mouseup', function() {
+        /// 描画を停止する関数
+        function stopDrawing(e) {
             isDrawing = false;
-        });
+            /// デフォルトの動作をキャンセル
+            e.preventDefault();
+        }
 
-        /// キャンバスからマウスが離れた時に描画を停止
-        canvas.addEventListener('mouseleave', function() {
-            isDrawing = false;
-        });
+        /// マウスおよびタッチイベントを登録
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseleave', stopDrawing);
+        canvas.addEventListener('mousemove', handleMove);
 
-        /// マウス移動に応じて描画処理を行う
-        canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+        canvas.addEventListener('touchmove', handleMove);
     }
 });
