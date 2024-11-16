@@ -5,13 +5,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const ctx = canvas.getContext('2d');
 
     /// ブラシのサイズを設定
-    const brushSize = 30;
+    const brushSize = (canvas.height / canvas.width) * 100;
 
     /// 描画中の状態を追跡
     let isDrawing = false;
 
     /// デフォルトのテキストカラー
     let textColor = 'black';
+
+    /// フォント
+    const fontSize = canvas.width * 0.3
+    const font =  `bold ${fontSize}px Arial`
 
     /// 結果のテキストを格納する変数を宣言
     let resultText = '';
@@ -66,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         /// キャンバスにテキストを描画
         ctx.fillStyle = textColor;
-        ctx.font = 'bold 48px Arial';
+        ctx.font = font;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(resultText, canvas.width / 2, canvas.height / 2);
@@ -131,7 +135,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             /// テキストを描画
             ctx.fillStyle = textColor;  
-            ctx.font = 'bold 48px Arial';
+            ctx.font = font;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(resultText, canvas.width / 2, canvas.height / 2);
@@ -156,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             /// スクラッチの閾値を超えたか判断
             const totalArea = maskCanvas.width * maskCanvas.height;
-            const revealLimit = totalArea * 0.5; // 50%
+            const revealLimit = totalArea * 0.2; // 50%
             if (revealed >= revealLimit) {
                 /// 特典表示ボタンを表示
                 document.getElementById('revealButton').style.display = 'block';
