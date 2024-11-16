@@ -1,13 +1,15 @@
 body {
     margin: 0;
     padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
 }
 
 #scratchCanvas {
     display: block;
-
-    /* 上下に40px、左右に20pxの余白を設定 */
-    margin: 40px 20px; 
+    margin: 40px 20px;
 }
 
 canvas {
@@ -17,4 +19,18 @@ canvas {
 #revealButton {
     display: none;
     margin-top: 10px;
+    
+     /* ボタンの内部余白 */
+    padding: 10px 20px;
+
+     /* フォントサイズ */
+    font-size: 16px;
+
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+
+     /* 角の丸み */
+    border-radius: 5px;
 }
