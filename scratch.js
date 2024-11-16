@@ -4,23 +4,32 @@ document.addEventListener('DOMContentLoaded', function() {
     /// canvasから2Dコンテキストを取得
     const ctx = canvas.getContext('2d');
 
-    /// ブラシのサイズとキャンバスの幅、高さを設定
+    /// ブラシのサイズを設定
     const brushSize = 30;
-    const width = 300;
-    const height = 200;
-
-    /// デフォルトのテキストカラー
-    let textColor = 'black';
 
     /// 描画中の状態を追跡
     let isDrawing = false;
 
+    /// デフォルトのテキストカラー
+    let textColor = 'black';
+
     /// 結果のテキストを格納する変数を宣言
     let resultText = '';
 
-    /// キャンバスの幅と高さを設定
-    canvas.width = width;
-    canvas.height = height;
+    /// ウィンドウサイズに応じてキャンバスのサイズを設定する関数
+    function resizeCanvas() {
+        /// キャンバスの幅をウィンドウ幅から左右の余白を引いた値に設定
+        const canvasWidth = window.innerWidth - 40; // 左右の余白20pxずつ
+        /// キャンバスの高さをウィンドウ高さの1/3に設定
+        const canvasHeight = window.innerHeight / 3;
+
+        /// キャンバスのサイズを更新
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+
+        /// 初期描画を実行
+        initializeCanvas();
+    }
 
     /// サーバーから結果を取得
     fetch('/getResult')
@@ -35,39 +44,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 textColor = 'red';
             } 
 
-            /// 初期描画を実行
-            initializeCanvas();
+            /// キャンバスのサイズをリサイズ
+            resizeCanvas();
         })
         .catch(error => { 
             console.error('サーバーから結果を取得できませんでした:', error);
-            // TODO:とりあえずランダムで
+            /// とりあえずランダムで結果を設定
             resultText = Math.random() < 0.5 ? 'あたり！' : 'ハズレ';
             textColor = resultText == 'あたり！' ? 'green': 'red';
-            initializeCanvas();
+            resizeCanvas();
         });
+
+    /// ウィンドウサイズ変更時にキャンバスをリサイズ
+    window.addEventListener('resize', resizeCanvas);
 
     /// キャンバスの初期化と描画
     function initializeCanvas() {
         /// 背景を白で塗りつぶし
         ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, width, height);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         /// キャンバスにテキストを描画
         ctx.fillStyle = textColor;
         ctx.font = 'bold 48px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(resultText, width / 2, height / 2);
+        ctx.fillText(resultText, canvas.width / 2, canvas.height / 2);
 
         /// オフスクリーンキャンバスを作成してマスクとして使用
         const maskCanvas = document.createElement('canvas');
-        maskCanvas.width = width;
-        maskCanvas.height = height;
+        maskCanvas.width = canvas.width;
+        maskCanvas.height = canvas.height;
         const maskCtx = maskCanvas.getContext('2d');
 
         /// マスクを灰色で塗りつぶし
         maskCtx.fillStyle = '#888';
-        maskCtx.fillRect(0, 0, width, height);
+        maskCtx.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
 
         /// 初期描画を更新
         updateCanvas(maskCtx);
@@ -111,18 +123,18 @@ document.addEventListener('DOMContentLoaded', function() {
         /// キャンバスを更新する関数
         function updateCanvas(maskCtx) {
             /// メインキャンバスをクリア
-            ctx.clearRect(0, 0, width, height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             /// 背景を白で塗りつぶし
             ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, width, height);
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             /// テキストを描画
             ctx.fillStyle = textColor;  
             ctx.font = 'bold 48px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(resultText, width / 2, height / 2);
+            ctx.fillText(resultText, canvas.width / 2, canvas.height / 2);
 
             /// マスクを重ね合わせ
             ctx.drawImage(maskCanvas, 0, 0);
@@ -131,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
         /// スクラッチの進行度を計算
         function updateReveal(maskCtx) {
             /// マスクキャンバスからイメージデータを取得
-            const imageData = maskCtx.getImageData(0, 0, width, height);
+            const imageData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
             const data = imageData.data;
 
             /// 透明ピクセルのカウントをリセット
@@ -143,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             /// スクラッチの閾値を超えたか判断
-            const totalArea = width * height;
+            const totalArea = maskCanvas.width * maskCanvas.height;
             const revealLimit = totalArea * 0.5; // 50%
             if (revealed >= revealLimit) {
                 /// 特典表示ボタンを表示
